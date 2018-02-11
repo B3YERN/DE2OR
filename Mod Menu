@@ -1,0 +1,468 @@
+union ScriptArg {unsigned int ui;float f;int i; char *str;};
+namespace SCRIPT {
+    static void TRIGGER_SCRIPT_EVENT(int always1, ScriptArg *argsStruct, int argsStructCount, int playerbitset) { invoke<Void>(0x54763B35, always1, argsStruct, argsStructCount, playerbitset); } // 0x54763B35
+};
+namespace PlayerMods {
+namespace eventCreator {
+void callScriptEvent(ScriptArg *args,int argsCount,unsigned int playerBits) {
+    SCRIPT::TRIGGER_SCRIPT_EVENT(1,args,argsCount,playerBits);
+}
+};
+};
+ 
+void kickPlayerNonHost(int player) {
+    //0x00D003DFB4+10*0x4 = args
+    unsigned int playerBit = (1<<player);
+    //0x2 0x7 0x35     and 0xA was me so idk...
+    ScriptArg args[3] = {0x2,player,0x35};//0x35 is the speccial one I guess
+ 
+    //first arg is always 1
+    //last arg is always the bit thing
+    //second arg meh
+    //third arg is the size of the data
+    SCRIPT::TRIGGER_SCRIPT_EVENT(1,args,3,playerBit);
+}
+ 
+ 
+ 
+opd_s _0x012C8D60_t = {0x0012C8D60,TOC};
+unsigned int (*_0x0012C8D60)(unsigned int r3, unsigned int senderData, unsigned int recieverData, unsigned int r6, unsigned int r7, unsigned int r8, unsigned int r9) = (unsigned int(*)(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int))&_0x012C8D60_t;
+ 
+//bool jobProtection = true;
+bool moneyProtection = true;
+bool teleportProtectionEnabled = true;
+char scriptEventDialogText[100];
+unsigned int scriptEventDetour(unsigned int r3, unsigned int senderData, unsigned int recieverData, unsigned int r6, unsigned int r7, unsigned int r8, unsigned int r9) {
+    int addressOfArgs = r3+10*0x4;
+    char *senderName = (char*)(*(int*)(senderData+0x78)+0x10);
+    //if (*(int*)addressOfArgs == 166) {
+        //this is the one I want to research cuz of func_6272("CnCTG_IN_BF", 2147483647, 1);
+        //snprintf$(scriptEventDialogText,sizeof(scriptEventDialogText),"%s tried to kick you!",senderName);
+        //printf("0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X (next is 1337) 0x%X\n",*(int*)(addressOfArgs+0x4*0),*(int*)(addressOfArgs+0x4*1),*(int*)(addressOfArgs+0x4*2),*(int*)(addressOfArgs+0x4*3),*(int*)(addressOfArgs+0x4*4),*(int*)(addressOfArgs+0x4*5),*(int*)(addressOfArgs+0x4*6),*(int*)(addressOfArgs+0x4*7),*(int*)(addressOfArgs+0x4*8),*(int*)(addressOfArgs+0x4*9),*(int*)(addressOfArgs+0x4*10),*(int*)(addressOfArgs+0x4*11),*(int*)(addressOfArgs+0x4*12),*(int*)(addressOfArgs+0x4*13),*(int*)(addressOfArgs+0x4*14),*(int*)(addressOfArgs+0x4*15),*(int*)(addressOfArgs+0x4*16),*(int*)(addressOfArgs+0x4*17),*(int*)(addressOfArgs+0x4*18),*(int*)(addressOfArgs+0x4*19),*(int*)(addressOfArgs+0x4*20),*(int*)(addressOfArgs+0x4*21),*(int*)(addressOfArgs+0x4*22),1337);
+        //return 0;
+        //*(int*)addressOfArgs = 0;
+    //}
+    if (*(int*)addressOfArgs == 0x2/* && *(int*)(addressOfArgs+0x4) == PLAYER::PLAYER_ID()*/ && *(int*)(addressOfArgs+0x8) == 0x35) {
+        //this is kick player
+        snprintf$(scriptEventDialogText,sizeof(scriptEventDialogText),"%s tried to kick you!",senderName);
+        print2(scriptEventDialogText,5000);
+        //return 0;
+        *(int*)addressOfArgs = 0;
+    }
+    if (*(int*)addressOfArgs == 0x2/* && *(int*)(addressOfArgs+0x4) == PLAYER::PLAYER_ID()*/ && *(int*)(addressOfArgs+0x8) == 0x34) {
+        //this is fake leave
+        snprintf$(scriptEventDialogText,sizeof(scriptEventDialogText),"%s tried to make you fake leave!",senderName);
+        print2(scriptEventDialogText,5000);
+        //return 0;
+        *(int*)addressOfArgs = 0;
+    }
+    if (*(int*)addressOfArgs == 0x2/* && *(int*)(addressOfArgs+0x4) == PLAYER::PLAYER_ID()*/ && *(int*)(addressOfArgs+0x8) == 0x2e) {
+        //this is fake leave
+        snprintf$(scriptEventDialogText,sizeof(scriptEventDialogText),"%s tried to reset your view!",senderName);
+        print2(scriptEventDialogText,5000);
+        //return 0;
+        *(int*)addressOfArgs = 0;
+    }
+    if (*(int*)addressOfArgs == 0xD8) {
+        //this is give rp
+        snprintf$(scriptEventDialogText,sizeof(scriptEventDialogText),"%s tried to give you %i rp!",senderName,*(int*)(addressOfArgs+0x8));
+        print2(scriptEventDialogText,5000);
+        //*(int*)(addressOfArgs+0x8) = 0;//rp amount
+        *(int*)addressOfArgs = 0;
+        //return 0;
+    }
+    /*if (*(int*)addressOfArgs == 0x9A) {
+        //this is job circle
+        if (jobProtection) {
+            snprintf$(scriptEventDialogText,sizeof(scriptEventDialogText),"%s tried to make you go into a job with job protection enabled! This may be a false alarm.",senderName);
+            print2(scriptEventDialogText,5000);
+            //try doing *(int*)addressOfArgs = 0 instead
+            //return 0;
+            *(int*)addressOfArgs = 0;
+        }
+    }*/
+    //not needed anymore because bypassed
+    if (*(int*)addressOfArgs == 0xDA) {
+        //this is money
+        if (moneyProtection) {
+            //Write_Global(262145+4812,0);//set the amount to zero instead of returning
+            snprintf$(scriptEventDialogText,sizeof(scriptEventDialogText),"%s tried to give you money with money protection enabled!",senderName);
+            print2(scriptEventDialogText,2000);
+            //return 0;
+            *(int*)addressOfArgs = 0;
+        } else {
+            //Write_Global(262145+4812,20000);
+        }
+    }
+    if (*(int*)addressOfArgs == 0x16C) {
+        //this is apartment
+        snprintf$(scriptEventDialogText,sizeof(scriptEventDialogText),"%s tried to force you into their apartment!",senderName);
+        print2(scriptEventDialogText,5000);
+        //return 0;
+        *(int*)addressOfArgs = 0;
+    }
+    if (*(int*)addressOfArgs == 0x3) {
+        if (*(int*)(addressOfArgs+0x8) == 0x37 || *(int*)(addressOfArgs+0x8) == 0x36 || *(int*)(addressOfArgs+0x8) == 0x35) {
+            //this is job
+            snprintf$(scriptEventDialogText,sizeof(scriptEventDialogText),"%s tried to force you to join a job!",senderName);
+            print2(scriptEventDialogText,5000);
+            //return 0;
+            *(int*)addressOfArgs = 0;
+        }
+    }
+    return _0x0012C8D60(r3,senderData,recieverData,r6,r7,r8,r9);
+}
+void setupScriptEventDetour() {//call this on game start to set it up
+    *(int*)(0x1C6BD80) = *(int*)( /*this returns the opd struct address Function*/(int)&scriptEventDetour );//same
+    *(int*)((0x1C6BD80+0x4)) = *(int*)( /*this returns the opd struct address TOC*/(int)&scriptEventDetour+0x4 );
+}
+void resetPlayerView(int player) {
+    ScriptArg args[3];
+    args[0].i = 0x2;
+    args[1].i = player;
+    args[2].i = 0x2e;//46
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}
+ 
+bool resetViewBoolLoop[18];
+void resetPlayerViewLoop() {
+    for (int i = 0; i < 16; i++)
+        if (resetViewBoolLoop[i])
+            resetPlayerView(i);
+}
+ 
+ 
+void setPlayerStats(int player) {
+    //event id is 150
+    //get_event_data for it is in freemode at line 313711
+    //the call to func_544 is set_stat_int usage
+    //doesn't seem to have a trigger_script_event call
+    ScriptArg args[12];
+    args[0].i = 150;
+    args[1].i = player;
+    args[2].i = 0;//unknown value
+ 
+    //the values are for NOT setting the correlated stat
+    //these are the hash from the array. weird but it's wat it is
+    args[3].i = 88;//int
+    args[4].i = 34;//bool
+    args[5].i = 1;//float
+    args[6].i = 2949;//int
+    args[7].i = 228;//bool
+    args[8].i = 228;//float
+ 
+    args[9].i = 0;//value to set for the int ones. This is added on to the previous value set for the stat
+    args[10].i = 0;//value to set for the float ones. This is added on to the previous value set for the stat
+    args[11].i = 0;//value to set for the bool ones
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,12,bits);
+}
+ 
+enum {
+    EVENT_STAT_INT_0 = 3,
+    EVENT_STAT_INT_1 = 6,
+    EVENT_STAT_BOOL_0 = 4,
+    EVENT_STAT_BOOL_1 = 7,
+    EVENT_STAT_FLOAT_0 = 5,
+    EVENT_STAT_FLOAT_1 = 8,
+    EVENT_STAT_VALUE_INT = 9,
+    EVENT_STAT_VALUE_FLOAT = 10,
+    EVENT_STAT_VALUE_BOOL = 11
+};
+void setupDefaultStatEvent(int player, ScriptArg *args) {
+    args[0].i = 150;
+    args[1].i = player;
+    args[2].i = player;//unknown value
+    args[3].i = 88;//int
+    args[4].i = 34;//bool
+    args[5].i = 1;//float
+    args[6].i = 2949;//int
+    args[7].i = 228;//bool
+    args[8].i = 228;//float
+    args[9].i = 0;//value to set for the int ones. This is added on to the previous value set for the stat
+    args[10].i = 0;//value to set for the float ones. This is added on to the previous value set for the stat
+    args[11].i = 0;//value to set for the bool ones
+}bool globalStatVersionType = 1;//this decides whether I use the first 3 (0) or the last 3 (1)
+void setPlayerStatInt(int player, int statIndex, int statValue, bool type = globalStatVersionType) {
+    statValue = 0xFFFFFFFF-statValue+1;
+    ScriptArg args[12];
+    setupDefaultStatEvent(player,args);
+    printf("%i\n",args[6].i);
+    args[EVENT_STAT_VALUE_INT].ui = *(unsigned int*)(&statValue);
+    args[EVENT_STAT_VALUE_BOOL].i = statValue;
+    args[EVENT_STAT_VALUE_FLOAT].f = statValue;
+    if (type == 0)
+        args[EVENT_STAT_INT_0].i = statIndex;
+    else
+        args[EVENT_STAT_INT_1].i = statIndex;
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,12,bits);
+}
+void setPlayerStatBool(int player, int statIndex, bool statValue, bool type = globalStatVersionType) {
+    ScriptArg args[12];
+    setupDefaultStatEvent(player,args);
+    args[EVENT_STAT_VALUE_INT].i = *(unsigned int*)(&statValue);
+    args[EVENT_STAT_VALUE_BOOL].i = statValue;
+    args[EVENT_STAT_VALUE_FLOAT].f = statValue;
+    if (type == 0)
+        args[EVENT_STAT_BOOL_0].i = statIndex;
+    else
+        args[EVENT_STAT_BOOL_1].i = statIndex;
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,12,bits);
+}
+void setPlayerStatFloat(int player, int statIndex, float statValue, bool type = globalStatVersionType) {
+    ScriptArg args[12];
+    setupDefaultStatEvent(player,args);
+    args[EVENT_STAT_VALUE_INT].i = *(unsigned int*)(&statValue);
+    args[EVENT_STAT_VALUE_BOOL].i = statValue;
+    args[EVENT_STAT_VALUE_FLOAT].f = statValue;
+    if (type == 0)
+        args[EVENT_STAT_FLOAT_0].i = statIndex;
+    else
+        args[EVENT_STAT_FLOAT_1].i = statIndex;
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,12,bits);
+}
+ 
+void setPlayerRpStat(int player, int rp) {
+    //for (int i = 0; i < 25; i++)
+    setPlayerStatInt(player,626,rp,true);
+}
+void setPlayerSnackStat(int player, int amt) {
+    //for (int i = 0; i < 25; i++)
+    setPlayerStatInt(player,1261,amt,true);
+}
+void setPlayerMentalStat(int player, float amt) {
+    //for (int i = 0; i < 25; i++)
+    setPlayerStatFloat(player,133,amt,true);
+}
+ 
+void givePlayerRP(int player, int amount, int unk1 = -1, int unk2 = 1) {
+    //rank 500 is 0x0103941C
+    //rank 120 is 0x0021025A
+    ScriptArg args[5];
+    args[0].i = 0xD8;//216
+    args[1].i = player;
+    args[2].i = 0xffffffff-amount+1;//46
+    args[3].i = 0;//-1   0 is partner, else is gen
+    args[4].i = 0;//unk2;//1
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,5,bits);
+}
+//get_event_data(
+void removePlayerWantedLevel(int player) {
+    ScriptArg args[2];
+    args[0].i = 356;
+    args[1].i = player;
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}
+void setPlayerPassiveModeOn(int player) {
+    ScriptArg args[3];
+    args[0].i = 0x104;
+    args[1].i = player;
+    args[2].i = 0;
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}
+void setPlayerPassiveModeOff(int player) {
+    ScriptArg args[3];
+    args[0].i = 0x118;
+    args[1].i = player;
+    args[2].i = 0;
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}
+void activateBroadcastApp(int player) {
+    ScriptArg args[3];
+    args[0].i = 2;
+    args[1].i = player;
+    args[2].i = 0x23;//35
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}
+void sendPlayerMessage(int player, char *message) {
+    //line 318419 freemode.c
+    ScriptArg args[3];
+    args[0].i = 152;
+    args[1].i = player;
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}
+void fakeJoinJobMessage(int player) {
+    ScriptArg args[3];
+    args[0].i = 152;
+    args[1].i = player;
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}
+void playSound(int player, int type) {//types: 0 or 1
+    ScriptArg args[3];
+    args[0].i = 30+type;
+    args[1].i = player;
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}
+void apartmentInvite(int sender, int reciever) {//I think it just sends it to the whole lobby
+    ScriptArg args[2];
+    args[0].i = 32;
+    args[1].i = sender;
+    unsigned int bits = (1<<reciever);
+    PlayerMods::eventCreator::callScriptEvent(args,2,bits);
+}
+void onevonedeathmatchInvite(int sender, int reciever) {//I think it just sends it to the whole lobby
+    ScriptArg args[3];
+    args[0].i = 41;
+    args[1].i = sender;
+    unsigned int bits = (1<<reciever);
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}
+//00000150 00000000 00000004 00000001   change clothes for other team
+void apartmentInvite(int playerToInvite, int apartmentOwner, int apartmentNum) {
+    ScriptArg args[3];
+    args[0].i = 0x16c;
+    args[1].i = apartmentOwner;
+    args[2].i = apartmentNum;
+    unsigned int bits = (1<<playerToInvite);
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}
+void showOffTextAtBottom(int player) {
+    ScriptArg args[3];
+    args[0].i = 166;//this should actually be 15
+    args[1].i = player;
+    args[2].i = 15;//35
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}
+void deactivateBroadcastApp(int player) {
+    ScriptArg args[3];
+    args[0].i = 2;
+    args[1].i = player;
+    args[2].i = 0x24;//36
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}
+void crateDropTestEvent(int player) {
+    ScriptArg args[6];
+    args[0].i = 290;
+    args[1].i = player;
+    args[2].i = -1;
+    args[3].i = 8;
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,6,bits);
+}
+void sendCash(int player, int amount) {
+    ScriptArg args[5];
+    args[0].i = 219;//0xDB
+    args[1].i = 40;//player...   I think you set to 40 to make it work post-patch. I haven't tested
+    args[2].i = amount;
+    args[3].i = -1;
+    args[4].i = 1;
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,5,bits);
+}
+lexicon
+ 
+RIP :(
+*/
+/*void sendCash2(int player, int amount) {
+    ScriptArg args[3];
+    args[0].i = 219;//0xDB
+    args[1].i = player;
+    args[2].i = amount;
+    unsigned int bits = 0xFFFFFFFF;
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}*/
+void makePlayerFakeLeave(int player) {
+    ScriptArg args[3];
+    args[0].i = 0x2;
+    args[1].i = player;
+    args[2].i = 0x34;//46
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}
+ 
+void playerLeaveDialog(int player) {
+    ScriptArg args[2];
+    args[0].i = 193;
+    args[1].i = PLAYER::GET_PLAYER_PED(player);
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,2,bits);
+}
+ 
+//000000DA 00000003 06648E28 00000001
+void givePlayerMoney(int player, int amount) {//refunds to themself. max 20k
+    ScriptArg args[4];
+    args[0].i = 0xDA;
+    args[1].i = 40;//player...   I think you set to 40 to make it work post-patch. I haven't tested      //cash giver (them cuz they refund themself)
+    args[2].i = amount;//46
+    args[3].i = 1;
+    unsigned int bits = 0xFFFFFFFF;//(1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,4,bits);
+}
+/*void killPlayerByEvent(int player) {
+    //my player id is 4
+    //9 args
+    //bits: 0xFFEF which is ~(1<<4)
+    //data: 00000000 00000004 00000067 00000000 00000000 00000004 00000000 00000000 00000000
+    ScriptArg args[9];
+    args[0].i = 0x0;
+    args[1].i = player;//cash giver (them cuz they refund themself)
+    args[2].i = 0x67;//46
+    args[3].i = 0;
+    args[4].i = 0;
+    args[5].i = player;
+    args[6].i = 0;
+    args[7].i = 0;
+    args[8].i = 0;
+    unsigned int bits = 0xFFFFFFFF;//~(1<<player);//(1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,4,bits);
+}*/
+void teleportPlayerIntoGolfEvent(int player) {
+    ScriptArg args[3];
+    args[0].i = 0x3;
+    args[1].i = player;
+    args[2].i = 0x37;
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}
+void teleportPlayerIntoDartsEvent(int player) {
+    ScriptArg args[3];
+    args[0].i = 0x3;
+    args[1].i = player;
+    args[2].i = 0x36;
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}
+void teleportPlayerIntoArmWrestlingEvent(int player) {
+    ScriptArg args[3];
+    args[0].i = 0x3;
+    args[1].i = player;
+    args[2].i = 0x35;
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,3,bits);
+}
+ 
+void changePlayerWeather(int player, char *weather = "RAIN") {
+    ScriptArg args[22];
+    args[0].i = 16;
+    args[1].i = player;
+    //strcpy((char*)&args[2].i,weather);
+    //printf("\n%s\n",(char*)&args[2].i);
+    args[2].ui = 0x187198C;
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,22,bits);
+}
+/*
+void playerProperty(int player, int arg1, int arg2, int arg3) {
+    ScriptArg args[5];
+    args[0].i = 364;
+    args[1].i = player;//apartment of this player
+    args[2].i = 0;
+    args[3].i = 0;
+    args[4].i = 0;
+    unsigned int bits = (1<<player);
+    PlayerMods::eventCreator::callScriptEvent(args,5,bits);
+}*/
